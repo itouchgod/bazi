@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>干支文字钟</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="clock-shell">
+      <header class="topbar" aria-label="当前日期">
+        <div class="brand">干支文字钟</div>
+        <div class="header-tools">
+          <button id="theme-toggle" class="theme-toggle" type="button" aria-label="切换明暗">
+            ◐
+          </button>
+        </div>
+      </header>
+
+      <section class="word-stage" aria-label="当天年月日时天干地支">
+        <div class="readout">
+          <p id="solar-term" class="solar-term"></p>
+          <h1 id="sentence"></h1>
+          <div class="date-controls" aria-label="选择公历日期时间">
+            <input id="gregorian-picker" class="gregorian-picker" type="datetime-local" />
+            <button id="now-button" class="now-button" type="button">现在</button>
+          </div>
+        </div>
+      </section>
+
+      <footer class="bottombar" aria-label="节气与时区">
+        <span id="timezone"></span>
+        <span id="next-term"></span>
+      </footer>
+    </main>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
