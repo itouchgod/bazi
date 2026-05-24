@@ -90,16 +90,6 @@ time {
   font-weight: 700;
 }
 
-.header-tools {
-  display: flex;
-  align-items: center;
-  gap: 0.72rem;
-  margin-right: -0.2rem;
-  min-width: 2.1rem;
-  min-height: 2rem;
-  justify-content: flex-end;
-}
-
 .word-stage {
   position: relative;
   display: grid;
@@ -233,6 +223,17 @@ h1 {
   text-align: right;
 }
 
+.theme-zone {
+  position: fixed;
+  right: clamp(0.65rem, 2vw, 1.25rem);
+  bottom: clamp(0.65rem, 2vw, 1.25rem);
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  z-index: 10;
+}
+
 .theme-toggle {
   display: grid;
   width: 1.6rem;
@@ -254,8 +255,8 @@ h1 {
     opacity 180ms ease;
 }
 
-.header-tools:hover .theme-toggle,
-.header-tools:focus-within .theme-toggle {
+.theme-zone:hover .theme-toggle,
+.theme-zone:focus-within .theme-toggle {
   opacity: 0.72;
   pointer-events: auto;
 }
