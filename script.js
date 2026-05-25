@@ -40,6 +40,8 @@ const TERM_INFO = [
   218072, 240693, 263343, 285989, 308563, 331033, 353350, 375494, 397447,
   419210, 440795, 462224, 483532, 504758,
 ];
+const DAY_MS = 24 * 60 * 60 * 1000;
+const DEG_TO_RAD = Math.PI / 180;
 const MONTH_BRANCH_BY_TERM = new Map([
   [2, 2],
   [4, 3],
@@ -133,10 +135,143 @@ function wrap(value, size) {
   return ((value % size) + size) % size;
 }
 
-function termDate(year, termIndex) {
+function normalizeDegrees(value) {
+  return ((value % 360) + 360) % 360;
+}
+
+function angleDifference(value, target) {
+  return ((normalizeDegrees(value) - normalizeDegrees(target) + 540) % 360) - 180;
+}
+
+function deltaTSeconds(date) {
+  const year = date.getUTCFullYear() + (date.getUTCMonth() + 0.5) / 12;
+  let offset;
+
+  if (year >= 2005 && year < 2050) {
+    offset = year - 2000;
+    return 62.92 + 0.32217 * offset + 0.005589 * offset * offset;
+  }
+
+  if (year >= 1986 && year < 2005) {
+    offset = year - 2000;
+    return (
+      63.86 +
+      0.3345 * offset -
+      0.060374 * offset * offset +
+      0.0017275 * offset * offset * offset +
+      0.000651814 * offset * offset * offset * offset +
+      0.00002373599 * offset * offset * offset * offset * offset
+    );
+  }
+
+  if (year >= 1961 && year < 1986) {
+    offset = year - 1975;
+    return 45.45 + 1.067 * offset - (offset * offset) / 260 - (offset * offset * offset) / 718;
+  }
+
+  if (year >= 1941 && year < 1961) {
+    offset = year - 1950;
+    return 29.07 + 0.407 * offset - (offset * offset) / 233 + (offset * offset * offset) / 2547;
+  }
+
+  if (year >= 1920 && year < 1941) {
+    offset = year - 1920;
+    return 21.2 + 0.84493 * offset - 0.0761 * offset * offset + 0.0020936 * offset * offset * offset;
+  }
+
+  if (year >= 1900 && year < 1920) {
+    offset = year - 1900;
+    return (
+      -2.79 +
+      1.494119 * offset -
+      0.0598939 * offset * offset +
+      0.0061966 * offset * offset * offset -
+      0.000197 * offset * offset * offset * offset
+    );
+  }
+
+  if (year >= 2050 && year < 2150) {
+    offset = (year - 1820) / 100;
+    return -20 + 32 * offset * offset - 0.5628 * (2150 - year);
+  }
+
+  return 62.92;
+}
+
+function solarLongitude(date) {
+  const julianDayUtc = date.getTime() / DAY_MS + 2440587.5;
+  const julianDayTt = julianDayUtc + deltaTSeconds(date) / 86400;
+  const centuries = (julianDayTt - 2451545) / 36525;
+  const meanLongitude = normalizeDegrees(
+    280.46646 + 36000.76983 * centuries + 0.0003032 * centuries * centuries,
+  );
+  const meanAnomaly = normalizeDegrees(
+    357.52911 +
+      35999.05029 * centuries -
+      0.0001537 * centuries * centuries +
+      0.00000048 * centuries * centuries * centuries,
+  );
+  const anomalyRadians = meanAnomaly * DEG_TO_RAD;
+  const equationOfCenter =
+    (1.914602 - 0.004817 * centuries - 0.000014 * centuries * centuries) * Math.sin(anomalyRadians) +
+    (0.019993 - 0.000101 * centuries) * Math.sin(2 * anomalyRadians) +
+    0.000289 * Math.sin(3 * anomalyRadians);
+  const trueLongitude = meanLongitude + equationOfCenter;
+  const omega = (125.04 - 1934.136 * centuries) * DEG_TO_RAD;
+
+  return normalizeDegrees(trueLongitude - 0.00569 - 0.00478 * Math.sin(omega));
+}
+
+function termTargetLongitude(termIndex) {
+  return normalizeDegrees(285 + termIndex * 15);
+}
+
+function roughTermDate(year, termIndex) {
   const base = Date.UTC(1900, 0, 6, 2, 5);
   const ms = base + 31556925974.7 * (year - 1900) + TERM_INFO[termIndex] * 60000;
   return new Date(ms);
+}
+
+function termDate(year, termIndex) {
+  const center = roughTermDate(year, termIndex).getTime();
+  const targetLongitude = termTargetLongitude(termIndex);
+  let start = center - 3 * DAY_MS;
+  let end = center + 3 * DAY_MS;
+  let startDiff = angleDifference(solarLongitude(new Date(start)), targetLongitude);
+  let endDiff = angleDifference(solarLongitude(new Date(end)), targetLongitude);
+  let attempts = 0;
+
+  while (startDiff > 0 && attempts < 10) {
+    end = start;
+    start -= DAY_MS;
+    startDiff = angleDifference(solarLongitude(new Date(start)), targetLongitude);
+    attempts += 1;
+  }
+
+  attempts = 0;
+  while (endDiff < 0 && attempts < 10) {
+    start = end;
+    end += DAY_MS;
+    endDiff = angleDifference(solarLongitude(new Date(end)), targetLongitude);
+    attempts += 1;
+  }
+
+  if (startDiff > 0 || endDiff < 0) {
+    return new Date(center);
+  }
+
+  for (let index = 0; index < 48; index += 1) {
+    const midpoint = (start + end) / 2;
+    const diff = angleDifference(solarLongitude(new Date(midpoint)), targetLongitude);
+
+    if (diff < 0) {
+      start = midpoint;
+    } else {
+      end = midpoint;
+    }
+  }
+
+  return new Date((start + end) / 2);
 }
 
 function significantTermsAround(year) {
@@ -296,7 +431,7 @@ function render() {
   const nextTerm = nextSolarTerm(now);
 
   renderSentence(pillars);
-  elements.solarTerm.textContent = `节令 ${month.term.name} · ${BRANCHES[month.branchIndex]}月`;
+  elements.solarTerm.textContent = `节令 ${month.term.name} ${formatTermDate(month.term.date)} · ${BRANCHES[month.branchIndex]}月`;
   elements.nextTerm.textContent = `下一节气 ${nextTerm.name} ${formatTermDate(nextTerm.date)}`;
   elements.timezone.textContent = Intl.DateTimeFormat().resolvedOptions().timeZone || "本机时区";
   syncPicker(now);
