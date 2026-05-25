@@ -65,6 +65,9 @@ const elements = {
 };
 
 let selectedDate = null;
+let isPickerEditing = false;
+let pickerValueBeforeEdit = "";
+let hasPickerChanged = false;
 
 function ganzhiFragment(stemIndex, branchIndex, suffix = "") {
   const fragment = document.createDocumentFragment();
@@ -246,9 +249,36 @@ function formatPickerValue(date) {
 }
 
 function syncPicker(date) {
-  if (document.activeElement !== elements.picker) {
+  if (!isPickerEditing && document.activeElement !== elements.picker) {
     elements.picker.value = formatPickerValue(date);
   }
+}
+
+function updateSelectedDateFromPicker() {
+  if (!elements.picker.value) {
+    selectedDate = null;
+    return;
+  }
+
+  const nextDate = new Date(elements.picker.value);
+  if (!Number.isNaN(nextDate.getTime())) {
+    selectedDate = nextDate;
+  }
+}
+
+function beginPickerEdit() {
+  if (!isPickerEditing) {
+    pickerValueBeforeEdit = elements.picker.value;
+    hasPickerChanged = false;
+  }
+  isPickerEditing = true;
+}
+
+function finishPickerEdit() {
+  if (hasPickerChanged || selectedDate) {
+    updateSelectedDateFromPicker();
+  }
+  isPickerEditing = false;
 }
 
 function render() {
@@ -287,12 +317,31 @@ function initTheme() {
 
 function initPicker() {
   syncPicker(new Date());
+
+  elements.picker.addEventListener("focus", () => {
+    beginPickerEdit();
+  });
+  elements.picker.addEventListener("pointerdown", () => {
+    beginPickerEdit();
+  });
+  elements.picker.addEventListener("input", () => {
+    hasPickerChanged = elements.picker.value !== pickerValueBeforeEdit;
+    updateSelectedDateFromPicker();
+    render();
+  });
   elements.picker.addEventListener("change", () => {
-    selectedDate = elements.picker.value ? new Date(elements.picker.value) : null;
+    hasPickerChanged = true;
+    finishPickerEdit();
+    render();
+  });
+  elements.picker.addEventListener("blur", () => {
+    finishPickerEdit();
     render();
   });
   elements.nowButton.addEventListener("click", () => {
     selectedDate = null;
+    isPickerEditing = false;
+    hasPickerChanged = false;
     render();
   });
 }
