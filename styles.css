@@ -185,7 +185,7 @@ h1 {
 }
 
 .sentence-suffix {
-  margin-left: 0.04em;
+  margin-right: 0.04em;
   color: var(--muted);
   font-family:
     ui-sans-serif, "PingFang SC", "Noto Sans CJK SC", sans-serif;
@@ -280,7 +280,7 @@ h1 {
     grid-template-rows: 1fr;
     place-items: center;
     min-height: 100svh;
-    padding: 1rem 1.15rem;
+    padding: 0.8rem;
   }
 
   .topbar,
@@ -294,23 +294,102 @@ h1 {
   }
 
   .readout {
+    display: grid;
+    justify-items: center;
+    gap: 1.1rem;
     padding-block: 0;
+    width: min(100%, 24rem);
+  }
+
+  .solar-term {
+    display: none;
   }
 
   h1 {
-    gap: 0 0.16em;
+    display: grid;
+    grid-template-columns: repeat(4, max-content);
+    justify-content: center;
+    align-items: start;
+    gap: 0.56em;
+    width: auto;
+    max-width: 100%;
+    line-height: 1;
+    white-space: normal;
+    text-shadow: 0 0.55rem 1.6rem var(--shadow);
+  }
+
+  .sentence-unit {
+    flex-direction: column;
+    align-items: center;
+    line-height: 0.98;
+  }
+
+  .sentence-suffix {
+    margin: 0 0 0.22em;
+    font-size: 0.3em;
   }
 
   .date-controls {
     display: flex;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.42rem;
     width: 100%;
+    margin-top: 0;
   }
 
   .gregorian-picker {
     min-width: 0;
-    width: min(100%, 14.8rem);
+    width: min(100%, 13.8rem);
+    padding: 0.58rem 0.62rem;
+    font-size: 0.86rem;
   }
 
+  .now-button {
+    padding: 0.6rem 0.64rem;
+    font-size: 0.86rem;
+  }
+
+  .theme-zone {
+    right: 0.35rem;
+    bottom: 0.35rem;
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .theme-toggle {
+    width: 1.35rem;
+    height: 1.35rem;
+    font-size: 1rem;
+  }
+
+}
+
+@media (max-width: 390px), (max-height: 470px) {
+  .readout {
+    gap: 0.8rem;
+    width: min(100%, 19rem);
+  }
+
+  h1 {
+    gap: 0.42em;
+  }
+
+  .sentence-suffix {
+    display: none;
+  }
+
+  .date-controls {
+    gap: 0.35rem;
+  }
+
+  .gregorian-picker {
+    width: min(100%, 12.6rem);
+    padding: 0.5rem 0.52rem;
+    font-size: 0.8rem;
+  }
+
+  .now-button {
+    padding: 0.52rem 0.54rem;
+    font-size: 0.8rem;
+  }
 }

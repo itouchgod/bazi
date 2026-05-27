@@ -63,6 +63,7 @@ const elements = {
   timezone: document.querySelector("#timezone"),
   themeToggle: document.querySelector("#theme-toggle"),
   picker: document.querySelector("#gregorian-picker"),
+  dateControls: document.querySelector(".date-controls"),
   nowButton: document.querySelector("#now-button"),
 };
 
@@ -106,10 +107,15 @@ function fitSentence() {
   const readout = elements.sentence.closest(".readout");
   const stage = elements.sentence.closest(".word-stage");
   const compact = window.innerWidth < 680 || window.innerHeight < 560;
-  const baseSize = compact ? 40 : 62;
-  const sidePadding = compact ? 6 : 16;
+  const verySmall = window.innerWidth < 390 || window.innerHeight < 470;
+  const baseSize = compact ? (verySmall ? 26 : 32) : 48;
+  const sidePadding = compact ? 10 : 16;
   const availableWidth = Math.max(120, readout.clientWidth - sidePadding * 2);
-  const availableHeight = Math.max(42, stage.clientHeight - elements.solarTerm.offsetHeight - 80);
+  const controlsHeight = elements.dateControls?.offsetHeight || 0;
+  const availableHeight = Math.max(
+    compact ? 118 : 42,
+    stage.clientHeight - elements.solarTerm.offsetHeight - controlsHeight - (compact ? 24 : 80),
+  );
 
   elements.sentence.style.setProperty("--sentence-size", `${baseSize}px`);
   const widthScale = availableWidth / elements.sentence.scrollWidth;
@@ -127,7 +133,7 @@ function sentenceUnit(stemIndex, branchIndex, suffix) {
   unit.className = "sentence-unit";
   suffixElement.className = "sentence-suffix";
   suffixElement.textContent = suffix;
-  unit.append(ganzhiFragment(stemIndex, branchIndex), suffixElement);
+  unit.append(suffixElement, ganzhiFragment(stemIndex, branchIndex));
   return unit;
 }
 
