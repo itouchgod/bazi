@@ -108,7 +108,7 @@ function fitSentence() {
   const stage = elements.sentence.closest(".word-stage");
   const compact = window.innerWidth < 680 || window.innerHeight < 560;
   const verySmall = window.innerWidth < 390 || window.innerHeight < 470;
-  const baseSize = compact ? (verySmall ? 26 : 32) : 48;
+  const baseSize = compact ? (verySmall ? 26 : 32) : 56;
   const sidePadding = compact ? 10 : 16;
   const availableWidth = Math.max(120, readout.clientWidth - sidePadding * 2);
   const controlsHeight = elements.dateControls?.offsetHeight || 0;
@@ -124,6 +124,21 @@ function fitSentence() {
   const fittedSize = Math.max(22, Math.floor(baseSize * scale));
 
   elements.sentence.style.setProperty("--sentence-size", `${fittedSize}px`);
+  syncDateControlsWidth();
+}
+
+function syncDateControlsWidth() {
+  if (!elements.dateControls) {
+    return;
+  }
+
+  const units = [...elements.sentence.querySelectorAll(".sentence-unit")];
+  const unitRects = units.map((unit) => unit.getBoundingClientRect());
+  const sentenceWidth =
+    unitRects.length > 0
+      ? Math.ceil(Math.max(...unitRects.map((rect) => rect.right)) - Math.min(...unitRects.map((rect) => rect.left)))
+      : Math.ceil(elements.sentence.getBoundingClientRect().width);
+  elements.dateControls.style.setProperty("--controls-width", `${sentenceWidth}px`);
 }
 
 function sentenceUnit(stemIndex, branchIndex, suffix) {
